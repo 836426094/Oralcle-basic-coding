@@ -1,0 +1,35 @@
+1:不更新
+2:创建和配置数据库
+3:服务器类
+4:单实例数据库
+5:高级安装
+6:语言选择中文和英语
+7:企业版
+
+创建新的windows用户
+oracleuser
+oracleadmin
+在windows之中有许多的系统服务,那么这些系统服务要启动,可以定义为属于某个用户
+
+8:事物处理
+全局数据库名:mldn
+Oracle本身提供的是一个平台,平台上需要创立数据库文件,那么现在就让用户输入数据库的名称,
+但是这个名称只是针对本机的信息维护,如果需要通过网络操作,我们就需要SID
+
+默认打开的是CDB
+但是在Oracle12C里面提出了CDB和PDB,这个地方配置的是PDB的名称:pdbmldn
+一些不以c##开头的用户都在这里
+
+9:字符集:UTF-8
+10:事例方案:打勾
+11:启用恢复
+12:口令:oracleadmin
+13:一直等待,不要随便点确定取消界面.
+14:会出现一个口令管理界面
+15:sys超级管理员 change_on_install
+16:system普通管理员 manager
+17:scott tiger
+18:sh sh
+都选手动.
+19:OracleServiceMLDN实例服务
+20:OracleOraDb11g_home2TNSListener监听服务

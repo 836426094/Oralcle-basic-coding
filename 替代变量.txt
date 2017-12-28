@@ -1,0 +1,129 @@
+//验证替代变量的使用
+SELECT ename, job ,sal, hiredate 
+FROM emp
+WHERE sal > &inputsal;
+----------------------------------------------
+//查询一个雇员编号、姓名、职位、雇佣日期、基本工资，查询的雇员姓名由用户输入
+SELECT empno, ename, job , hiredate, sal
+FROM emp
+WHERE ename = UPPER('&inputEname');
+
+----------------------------------------------------------------
+//根据雇员姓名的关键字（由用户输入）查询雇员编号、姓名、职位、雇佣日期、基本工资
+SELECT empno,ename,job,hiredate,sal
+FROM emp
+WHERE ename LIKE UPPER('%&inputworld%');
+
+------------------------------------------------------------------
+//由用户输入雇佣日期，要求查询出所有早于此雇佣日期的雇员编号、姓名、职位、雇佣日期、基本工资
+SELECT empno,ename,job,hiredate,sal
+FROM emp
+WHERE hiredate < TO_DATE('&inputhiredate','yyyy-mm-dd') ;
+
+-------------------------------------------------------------------
+//输入查询雇员的职位及工资（高于输入工资）信息，而后显示雇员编号、姓名、职位、雇佣日期、基本工资
+SELECT empno,ename,job,hiredate,sal
+FROM emp
+WHERE sal > &sal AND job = UPPER('&job');
+--------------------------------------------------------------
+//在SELECT子句之中使用替代变量
+SELECT &columnName
+FROM emp
+WHERE deptno = &inputdeptno;
+
+--------------------------------------------------------
+//在FROM子句中使用替代变量
+SELECT *
+FROM &inputTable;
+
+----------------------------------------------
+//在ORDER BY子句中使用替代变量
+SELECT * 
+FROM emp
+ORDER BY &inputsal;
+
+----------------------------------------
+//使用“&&”定义替代变量
+
+SELECT &&inputsal,SUM(sal),AVG(sal)
+FROM emp
+GROUP BY &inputsal;
+
+-------------------------------------
+/*
+	用&&操作符,会自动把替代变量变成是你输入的值
+	如果需要重新输入,我们要使用UNDEFINE
+*/
+//取消"inputsal"这个替代变量
+UNDEFINE inputsal;
+
+------------------------------------------
+/*
+	用DEFINE来定义替代变量
+*/
+//定义一个替代变量inputdname
+DEFINE inputname = 'ACCOUNTING';
+
+//查询替代变量内容
+DEFINE inputname;
+
+//清除inputdname替代变量内容
+UNDEFINE inputname;
+------------------------------------------
+/*
+	虽然可以用键盘录入,实现交互的操作
+	但是提示不明显.
+	所以有了accepet语法
+	accept语法是必须配合脚本来使用的.
+	所以,要创建sql的文档.
+*/
+//使用ACCEPT定义替代变量
+ACCEPT inputGroupByColumn PROMPT'请输入要分组的字段:'
+SELECT &&inputGroupByColumn, SUM(sal),AVG(sal)
+FROM emp 
+GROUP BY &inputGroupByColumn;
+
+-------------------------------------------------
+//使用HIDE选项隐藏输入内容 
+
+ACCEPT inputGroupByColumn PROMPT '请输入要分组的字段：'
+SELECT &&inputGroupByColumn ,SUM(sal) ,AVG(sal) 
+FROM emp e
+GROUP BY &inputGroupByColumn ;
+---------------------------------------------------
+//使用FORMAT限定输入的数据长度
+ACCEPT inputGroupByColumn PROMPT '请输入要分组的字段：' FORMAT A10
+SELECT &&inputGroupByColumn ,SUM(sal) ,AVG(sal) 
+FROM emp e
+GROUP BY &inputGroupByColumn ;
+----------------------------------------------------------------
+//使用FORMAT格式化输入
+ACCEPT inputDate DATE FORMAT 'YYYY-MM-DD' PROMPT '请输入要查询的雇佣日期：' 
+SELECT empno , ename , job , hiredate
+FROM emp e
+WHERE hiredate=TO_DATE('&inputDate','YYYY-MM-DD') ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

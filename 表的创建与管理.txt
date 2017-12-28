@@ -1,0 +1,235 @@
+//创建一张可以保存所有成员信息的表- member表
+CREATE TABLE member (
+  mid   NUMBER (5),
+  name  VARCHAR2(50)    DEFAULT '无名氏'  ,
+  age   NUMBER (3),
+  birthday DATE    DEFAULT SYSDATE,
+  note CLOB
+);
+---------------------------------------------
+
+//查看表的结构
+DESC member ;
+-----------------------------
+
+//向member表中增加若干条测试数据
+INSERT INTO member(mid,name,age,birthday,note)
+VALUES(1,'钟福成',20,TO_DATE('1996-05-24','YYYY-MM-DD'),'我很好');
+
+INSERT INTO member(mid,name,age,birthday,note)
+VALUES(2,'OUZICHENG',19,TO_DATE('1996-09-10','YYYY-MM-DD'),'你也很好');
+-------------------------------------------------------------
+
+//查询表中的数据
+SELECT * FROM member;
+-----------------------------------------------
+
+//将emp表复制成myemp1表
+CREATE TABLE myemp1 AS SELECT * FROM emp;
+-----------------------------------------------
+
+//要求按照emp的表结构建立一张employee表,但是不需要emp表中的任何数据.
+//但是要求表的结构与emp表一样,但是不能存在emp表中的记录 - 即:只复制表结构
+//建立一个永远不会相等的条件,就可以复制表的结构了
+
+CREATE TABLE myemp2 AS SELECT * FROM emp WHERE 1 =2;
+--------------------------------------------------
+
+//所有部门的统计信息单独保存到一张新的department表之中
+
+DROP TABLE department;
+CREATE TABLE department AS
+SELECT d.deptno,d.dname,d.loc,
+  COUNT(empno) 人数,SUM(e.sal+NVL(e.comm,0)) 总工资,MAX(e.sal)最高,MIN(sal)最低,
+  ROUND(AVG(sal))平均
+FROM emp e ,dept d
+WHERE e.deptno(+) = d.deptno
+GROUP BY d.dname,d.deptno,d.loc
+ORDER BY d.deptno;
+
+
+SELECT * FROM department;
+-----------------------------------------------------------------
+
+//将member表修改为mldnuser表
+
+RENAME member TO zhongfucheng;
+
+//查看scott的全部数据表
+SELECT * FROM tab;
+-------------------------------------------------------------
+
+//截断mldnuser表
+/*
+  我们如果使用的是delete删除表数据,此时数据是未完全删除的,
+  如果我们要想彻底删除数据,就要用到TRUNCATE截断表
+  TRUNCATE截断表只在Oracle中有效
+ */
+ TRUNCATE TABLE zhongfucheng;
+ -----------------------------------------
+
+ //删除myemp表
+ DROP TABLE myemp;
+ ------------------------------
+
+ //查看scott表,查看还有没有myemp表
+ SELECT * FROM tab;
+ -----------------------------------
+
+ //employee和department表一起删除
+ DROP TABLE myemp1;
+ DROP TABLE department;
+
+ ----------------------------
+ //查询回收站中的表
+ SELECT object_name,original_name,operation,type FROM recyclebin ;
+
+ ---------------------
+
+ //直接删除zhongfucheng表
+ DROP TABLE zhongfucheng PURGE;
+
+ -----------------------------------------------
+
+ //从回收站之中删除employee表
+ PURGE TABLE myemp1;
+
+ ----------------------------------
+
+ //清空回收站
+ PURGE recyclebin;
+ -------------------------------------------
+
+ /*
+    修改表结构操作
+  */
+
+---定义数据库创建脚本
+
+--删除数据表
+DROP TABLE member PURGE;
+
+--创建数据表
+CREATE TABLE member (
+    mid NUMBER,
+    name VARCHAR2(50) DEFAULT '无名氏'
+);
+
+--增加数据测试
+INSERT INTO member (mid,name)
+VALUES(1,'ZHONGFUCHENG');
+
+INSERT INTO member (mid,name)
+VALUES(2,'LIXINGHUA');
+
+INSERT INTO member (mid,name)
+VALUES(3,'OUZCIEHNG');
+
+--查看表中的数据
+SELECT * FROM member;
+
+---查看表的结构
+DESC member;
+
+------------------------------------
+
+//向member表中增加三个字段
+ALTER TABLE member ADD (age	NUMBER(3)) ;
+ALTER TABLE member ADD (sex	VARCHAR2(10)	DEFAULT '男') ;
+ALTER TABLE member ADD (photo	VARCHAR2(100) DEFAULT 'nophoto.jpg') ;
+
+----------------------------------------------------
+//将name字段的长度修改为30,将sex字段的默认值修改为女
+ALTER TABLE member MODIFY(name VARCHAR2(30)) ;
+ALTER TABLE member MODIFY(sex VARCHAR2(3)	DEFAULT '女') ;
+
+--------------------
+//删除member表中的photo和age字段
+ALTER TABLE member DROP COLUMN photo ;
+ALTER TABLE member DROP COLUMN age ;
+
+-----------------------
+/*
+    由于我们每次delete数据,都要消耗大量的资源
+    所以,我们可以将数据先变成是无用的数据,再删除
+    设置成无用数据,查询也查询不出来了.
+ */
+ //将sex列设置成无用状态
+ ALTER TABLE member SET UNUSED(sex) ;
+
+ //将name列设置成无用状态
+ ALTER TABLE member SET UNUSED COLUMN name ;
+
+ --------------------------------------------
+ //删除member表中的无用(UNUSED)列
+ ALTER TABLE member DROP UNUSED COLUMNS ;
+
+ ---------------------------------------------
+ //查看user_tab_comments数据字典
+ SELECT * FROM user_tab_comments 
+ WHERE table_name = 'MEMBER';
+
+----------------------------------
+//为member表添加注释
+COMMENT ON TABLE member IS '用于记录参加活动的成员信息';
+
+-----------------------------
+//查看member表的注释
+SELECT * FROM user_tab_comments
+WHERE table_name = 'MEMBER';
+
+----------------------------------------
+//使用“user_col_comments”这个数据字典查看列的注释信息
+SELECT * 
+FROM user_col_comments 
+WHERE table_name = 'MEMBER';
+
+--------------------------------------------
+
+//为member表的mid添加注释信息
+COMMENT ON COLUMN member.mid IS'参加活动的成员编号';
+
+----------------------------
+//查看member表中所有列的注释信息
+SELECT * 
+FROM user_col_comments  
+WHERE table_name='MEMBER' ;
+
+--------------------------------
+/*
+	12c新特性,显式可见和不可见列
+*/
+
+/*
+	表空间知识
+*/
+//创建一个mldn_data的数据表空间
+CREATE TABLESPACE mldn_data
+DATAFILE 'd:\mldn_mldn_data01.dbf' SIZE 30M
+AUTOEXTEND on NEXT 2M;
+---------------------------------------------
+//利用dba_tablespaces查看表空间信息
+SELECT tablespace_name,block_size,extent_management,status,contents 
+FROM dba_tablespaces ;
+
+-------------------------------------
+//利用dba_data_files数据字典查看数据文件信息
+SELECT tablespace_name,file_name,bytes,autoextensible,online_status 
+FROM dba_data_files ;
+
+---------------------------------
+//利用dba_temp_files数据字典查看数据文件信息
+SELECT tablespace_name,file_name,bytes,autoextensible 
+FROM dba_temp_files ;
+--------------------------
+//创建数据表，指定表空间
+CREATE TABLE mytab(
+	id	NUMBER ,
+	title	VARCHAR2(50)
+) TABLESPACE mldn_data ;
+
+
+
+
+
+

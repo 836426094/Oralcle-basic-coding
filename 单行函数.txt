@@ -1,0 +1,365 @@
+//验证UPPER()、LOWER()函数
+SELECT UPPER('zhongfuceng'),LOWER('ZHONGFUCHENG')
+FROM dual;
+
+-------------------------------------------------------------
+//现在查询出雇员姓名是“smith”的完整信息，但是由于失误，
+//没有考虑到数据的大小写问题（在一些项目的运行之中经常会出现此类输入数据不考虑大小写的问题），
+//此时可以使用UPPER()函数将全部内容变为大写 
+
+SELECT *
+FROM emp
+WHERE ename = UPPER('smith');
+
+--------------------------------------------------------------
+//查询所有雇员的姓名，要求将每个雇员的姓名以首字母大写的形式出现
+SELECT INITCAP(ename)
+FROM emp;
+
+---------------------------------------------------------
+//现在要求查询所有雇员的姓名，但是要求将雇员姓名中所有的字母“A”替换成字母“_”
+
+SELECT REPLACE(ename,'A','_')
+FROM emp;
+
+-------------------------------------------------------
+//查询出姓名长度是5的所有雇员信息
+SELECT ename
+FROM emp
+WHERE LENGTH(ename) = 5;
+
+-------------------------------------------------
+//现在要求查询出雇员姓名前三个字母是“JAM”的雇员信息
+SELECT *
+FROM emp
+WHERE SUBSTR(ename,0,3) = 'JAM';
+
+----------------------------------------------------
+//查询所有10部门雇员的姓名，但是不显示每个雇员姓名的前三个字母
+SELECT SUBSTR(ename,3)
+FROM emp
+WHERE deptno = 10;
+
+--------------------------------------------------------------
+//要求显示每个雇员姓名及其姓名的后三个字母
+SELECT ename 原来的名字, SUBSTR(ename,-3) 姓名的后三个字母
+FROM emp;
+
+---------------------------------------------
+//Oracle下标从0和从1开始都是一样的.
+
+-------------------------------------------------------------
+//返回指定字符的ASCII码
+SELECT ASCII('d')
+FROM dual;
+
+-----------------------------------------
+//验证CHR()函数，将ASC II码变回字符
+SELECT CHR(100)
+FROM dual;
+
+-----------------------------------------
+//去掉字符串右边空格 —— RTRIM()
+SELECT '   MLDN LiXingHua     ' 原始字符串 ,  RTRIM('   MLDN LiXingHua     ') 去掉右空格
+FROM dual ;
+
+------------------------------------------------
+//函数里面的长度指的是总长度
+//字符串左、右填充 —— LPAD()、RPAD()
+SELECT LPAD('A',5,'*'),LPAD('B',5,'*')
+		LPAD(RPAD('MLDN' , 10 , '*') , 16 , '*') 组合使用
+FROM dual;
+
+------------------------------------------
+//字符串查找 —— INSTR()
+//有数据,就返回出现的位置,没有数据就返回0
+SELECT INSTR('AAAAAB','B')
+FROM dual;
+
+------------------------------------------
+//验证ROUND()函数的使用,四舍五入
+//ROUND()函数,第二个参数就是保留几位小数,如果是负数,那么就是对整数进位操作
+SELECT ROUND(sal/30)
+FROM emp;
+
+------------------------------------------------
+
+//列出每个雇员的一些基本信息和日工资情况
+SELECT ename,job,comm,empno,ROUND(sal/30) 日工资
+FROM emp;
+
+-----------------------------------------------
+//验证TRUNC()函数,对小数进行截取,不考虑四舍五入的问题
+SELECT  TRUNC(789.652) 截取小数, TRUNC(789.652,2) 截取两位小数,
+        TRUNC(789.652,-2) 取整
+FROM dual ;
+
+//验证MOD函数
+SELECT MOD(10,3)
+FROM dual;
+
+-----------------------
+//取得当前的系统时间
+SELECT SYSDATE
+FROM dual;
+
+-------------------------
+//修改日期显示格式
+ALTER SESSION SET NLS_DATE_FORMAT='yyyy-mm-dd hh24:mi:ss' ;
+SELECT SYSDATE FROM dual ;
+
+----------------------------
+//查询距离今天为止3天之后以及3天之前的日期
+SELECT SYSDATE + 3 三天之后,SYSDATE -3 三天之前
+FROM dual;
+
+-----------------------------------------
+//查询出每个雇员的到今天为止的雇佣天数、以及十天前每个雇员的雇佣天数。
+SELECT SYSDATE - hiredate 天数,SYSDATE - hiredate -10 十天前
+FROM emp;
+
+--------------------------------------------------
+//在查询结果之中使用TRUNC()函数完成功能
+SELECT TRUNC(SYSDATE - hiredate )天数, TRUNC(SYSDATE-hiredate-10)
+FROM emp;
+------------------------------------------------
+//要求显示所有雇员在被雇佣三个月之后的日期
+SELECT ADD_MONTHS(hiredate,3) ,ename
+FROM emp;
+
+----------------------------------------------
+//验证NEXT_DAY()函数，NEXT_DAY()函数的功能主要是求出下一个指定的日期数，
+//如果说现在的日期是“2012年01月30日 星期一”，
+//那么如果现在要想知道下一个“星期一”或是“星期日”的具体日期，则可以使用NEXT_DAY()函数。
+
+SELECT NEXT_DAY(SYSDATE,'星期五')
+FROM dual;
+
+----------------------------------------------------------------
+//验证LAST_DAY()函数，使用LAST_DAY()函数可以求得指定日期所在月的最后一天日期，
+如果今天的日期是“2012年01月19日”，则使用LAST_DAY()求出来的日期就是“2012年01月31日”
+SELECT LAST_DAY(SYSDATE)
+FROM dual;
+
+--------------------------------------------------------------------------------
+//查询所有是在其雇佣所在月的倒数第三天被公司雇佣的完整雇员信息
+SELECT *
+FROM emp
+WHERE LAST_DAY(hiredate)-2 = hiredate;
+
+----------------------------------------------------------------------
+//查询出每个雇员的编号、姓名、雇佣日期、雇佣的月数及年份
+
+SELECT empno 雇员编号,ename 雇员姓名,hiredate 雇佣日期,
+	TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)) 月数,
+	TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)/12) 年份
+FROM emp;
+
+-------------------------------------------------------------------
+//查询出每个雇员的编号、姓名、雇佣日期、已雇佣的年数、月数、天数
+/*
+	求天数最准确的就是日期减去日期,
+	要算出最准确的天数,两个日期差不超过30天
+	现在的时间减去(hiredate+(hiredate到现在的月份))
+*/
+SELECT empno 编号, ename 姓名, hiredate 日期, 
+	TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)) 月数,
+	TRUNC(MONTHS_BETWEEN(SYSDATE,hiredate)/12) 年数,
+	TRUNC(SYSDATE-ADD_MONTHS(hiredate,(MONTHS_BETWEEN(SYSDATE,hiredate)))) 天数
+FROM emp;
+
+-----------------------------------------------------------------------
+//从日期时间之中取出年、月、日数据。
+
+SELECT EXTRACT(YEAR FROM DATE '2001-09-19')years,
+	EXTRACT(MONTH FROM DATE '2001-09-19')months,
+	EXTRACT(DAY FROM DATE '2001-09-19')days
+FROM dual;
+
+------------------------------------------------------------------------
+//从时间戳之中取出年、月、日、时、分、秒。
+
+SELECT 
+	EXTRACT(YEAR FROM  SYSTIMESTAMP)years,
+	EXTRACT(MONTH FROM  SYSTIMESTAMP) months,
+	EXTRACT(DAY FROM  SYSTIMESTAMP) days,
+	EXTRACT(HOUR FROM  SYSTIMESTAMP) hours,
+	EXTRACT (MINUTE FROM  SYSTIMESTAMP) minutes,
+	EXTRACT(SECOND FROM  SYSTIMESTAMP) seconds
+FROM dual;
+
+-----------------------------------------------------------------------
+//复杂计算时间间隔（天数）
+SELECT	
+    EXTRACT(DAY FROM TO_TIMESTAMP('1982-08-13 12:17:57','yyyy-mm-dd hh24:mi:ss') 
+        - TO_TIMESTAMP('1981-09-27 09:08:33','yyyy-mm-dd hh24:mi:ss')) days 
+FROM dual ;
+
+----------------------------------------------------------
+//格式化当前的日期时间
+
+SELECT 
+	TO_CHAR(SYSDATE,'yyyy-mm-ss'),
+	TO_CHAR(SYSDATE,'yyyy-mm-ss hh24:mi:ss')
+FROM dual;
+
+--------------------------------------------------------------------------------
+使用其他方法格式化年、月、日
+
+SELECT TO_CHAR(SYSDATE,'YEAR-MONTH-DY')
+FROM dual;
+
+----------------------------------------------------------
+//查询出所有在每年2月份雇佣的雇员信息
+SELECT *
+FROM emp
+WHERE TO_CHAR(hiredate,'mm') = 2;
+
+-----------------------------------------------
+//现在要求将每个雇员的雇佣日期进行格式化显示，要求所有的雇佣日期可以按照“年-月-日”的形式显示，也可以将雇佣的年、月、日拆开分别显示
+
+SELECT
+	TO_CHAR(hiredate,'yyyy-mm-dd'),
+	TO_CHAR(hiredate,'yyyy')年,
+	TO_CHAR(hiredate,'mm')月,
+	TO_CHAR(hiredate,'dd')日
+FROM emp;
+
+--------------------------------------
+//使用英文的日期格式表示出每个雇员的雇佣日期
+SELECT 
+	TO_CHAR(hiredate,'YEAR-MONTH-DY')
+FROM emp;
+
+----------------------------------------
+//格式化数字显示
+/*
+	用九就是有多少位就多少位,
+	用0如果不够就在前面补0
+*/
+SELECT  TO_CHAR(987654321.789,'999,999,999,999.99999')  格式化数字 ,
+         TO_CHAR(987654321.789,'000,000,000,000.00000')  格式化数字 
+FROM dual ;
+
+-------------------------------------------------------------------
+//使用TO_DATE()函数
+
+SELECT 
+	TO_CHAR(hiredate,'yyyy-mm-dd')
+FROM emp;
+
+-------------------------------------------------------------
+//使用TO_TIMESTAMP()函数
+//将字符串变成是日期.
+SELECT
+	TO_TIMESTAMP('1981-09-27 18:07:10','YYYY-MM-DD HH24:MI:SS') datetime 
+FROM dual ;
+
+----------------------------------------------------------------
+//TO_NUMBER()函数可用可不用,因为数字型字符串能够隐式转换成数字类型
+
+--------------------------------------------
+//要求查询出每个雇员的编号、姓名、职位、雇佣日期、年薪
+
+SELECT empno,ename,job,hiredate,sal*12
+FROM emp;
+
+
+-----------------------------------------------------
+//验证NVL()函数
+//如果操作数为NULL,就把NULL的值变成是0,如果不是NULL,就直接返回
+SELECT NVL(NULL,0),NVL(3,0)
+FROM dual;
+
+-------------------------------------------------
+//使用NVL()函数解决年薪为null的情况。
+
+SELECT ename,empno,(sal+NVL(comm,0)) * 12 年薪
+FROM emp;
+-----------------------------
+
+//查询每个雇员的编号、姓名、年薪（sal + comm）、基本工资、奖金
+
+SELECT empno,ename,(sal + NVL(comm,0))*12 年薪,sal,comm
+FROM emp;
+
+---------------------------------
+//验证NULLIF()函数
+//如果两个表达式相等,就返回NULL,如果不等,就返回第一个表达式
+
+SELECT NULLIF(1,1) , NULLIF(1,2)
+FROM dual ;
+
+------------------------------
+//验证NULLIF()函数
+SELECT empno , ename , job , LENGTH(ename) , LENGTH(job) , NULLIF(LENGTH(ename),LENGTH(job)) nullif 
+FROM emp ;
+
+----------------------------------------------------
+//测试DECODE()函数
+//第一个值是参数,第二个是判断值,如果判断值等于参数,就返回显示值
+SELECT DECODE(2,1,'内容为一',2,'内容为二')  , DECODE(2,1,'内容为一','没有条件满足') 
+FROM dual ;
+
+-------------------------------------------------
+//现在雇员表中的工作有以下几种：提示(用DECODE)来做
+		· CLERK：业务员
+		· SALESMAN：销售人员
+		· MANAGER：经理
+		· ANALYST：分析员
+		· PRESIDENT：总裁
+要求可以查询雇员的姓名、职位、基本工资等信息，但是要求将所有的职位信息都替换为中文显示。
+
+
+SELECT ename,sal,empno,DECODE(job,
+	'CLERK','业务员',
+	'SALESMAN','销售人员',
+	'MANAGER','经理',
+	'ANALYST','分析员',
+	'PRESIDENT','总裁')job
+FROM emp;
+
+-------------------------------------------------
+显示每个雇员的姓名、工资、职位，
+同时显示新的工资（新工资的标准为：办事员增长10%、销售人员增长20%、经理增长30%、其他职位的人增长50%）
+//在WHEN执行判断语句,在THEN执行语句
+SELECT ename,sal,
+	CASE job WHEN 'CLERK' THEN sal*1.1
+			 WHEN 'SALESMAN' THEN sal*1.2
+			 WHEN 'MANAGER' THEN sal*1.3
+	ELSE     sal*1.5
+	END 新工资
+FROM emp;
+
+------------------------------------------------------------------------------
+//验证COALESCE()函数的功能
+//主要是对null进行操作.
+SELECT ename, sal, comm,
+	COALESCE(comm,100,2000) , 
+	COALESCE(comm,null,null) 
+	FROM emp ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

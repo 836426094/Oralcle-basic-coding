@@ -1,0 +1,81 @@
+//创建一张基本工资大于2000的雇员信息的视图
+CREATE VIEW v_myview 
+	AS	
+SELECT * FROM scott.emp WHERE sal > 2000;
+
+---------------------------------------
+//查看视图是否已经创建
+SELECT * FROM tab WHERE tabtype = 'VIEW';
+----------------------------------------
+//查看v_myview试图
+SELECT * FROM v_myview;
+
+-------------------------------------
+//查询user_views数据字典
+SELECT view_name, text_length, text FROM user_views;
+
+----------------------------------
+//创建一张只包含20部门雇员信息的视图
+CREATE VIEW v_emp20
+	AS 
+SELECT * FROM scott.emp WHERE deptno = 20;
+------------------------------------------------
+//查询user_views数据字典，观察视图是否已经成功创建
+SELECT view_name,text_length,test FROM user_views;
+
+-------------------------------------------
+//查询v_emp20的视图
+SELECT * FROM v_emp20;
+
+-------------------------------------------------
+//替换v_myview视图 —— 定义新视图，可以显示每个部门的详细信息。
+CREATE OR REPLACE VIEW v_myview
+	AS 
+SELECT d.deptno,d.dname,d.loc,
+	COUNT(empno)count,
+	NVL(ROUND(AVG(sal),2),0) avg,
+	NVL(SUM(sal),0) sum,
+	NVL(MAX(sal),0) max,
+	NVL(MIN(sal),0) min
+FROM scott.emp e,scott.dept d
+WHERE e.deptno(+) = d.deptno
+GROUP BY d.deptno,d.dname,d.loc;
+
+--------------------------
+//查询v_myview;
+SELECT * FROM v_myview;
+-------------------------------
+//为视图中查询的列起别名
+CREATE OR REPLACE VIEW v_myview
+	(部门编号,部门名称,位置,人数,平均工资,总工资,最高工资,最低工资)
+	AS
+SELECT d.deptno,d.dname,d.loc,
+	COUNT(e.empno) count,
+	NVL(ROUND(AVG(sal),2),0) avg,
+	NVL(SUM(sal),0) sum,
+	NVL(MAX(sal),0) max,
+	NVL(MIN(sal),0) min
+FROM scott.emp e,scott.dept d
+WHERE e.deptno(+) = d.deptno
+GROUP BY d.deptno,d.dname,d.loc;
+
+
+
+CREATE OR REPLACE VIEW v_myview
+	(部门编号,部门名称,位置,人数,平均工资,总工资,最高工资,最低工资)
+	AS 
+SELECT d.deptno,d.dname,d.loc,
+	COUNT(empno)count,
+	NVL(ROUND(AVG(sal),2),0) avg,
+	NVL(SUM(sal),0) sum,
+	NVL(MAX(sal),0) max,
+	NVL(MIN(sal),0) min
+FROM scott.emp e,scott.dept d
+WHERE e.deptno(+) = d.deptno
+GROUP BY d.deptno,d.dname,d.loc;
+
+---------------------------------------------------------------
+//
+
+
+

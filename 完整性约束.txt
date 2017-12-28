@@ -1,0 +1,492 @@
+/*
+	非空约束
+		1:错误提示的代码很明确
+		2:设置非空约束的字段不能为null
+*/
+
+//定义member表，其中姓名不允许为空
+DROP TABLE member PURGE;
+CREATE TABLE member (
+	mid 	NUMBER ,
+	name 	VARCHAR2(200) NOT NULL
+);
+------------------------------------
+//向member表中增加正确的数据
+INSERT INTO member (mid,name)
+VALUES(1,'钟福成');
+-----------------------------
+//向member表中增加错误的数据（两种语句的执行结果一样）
+1:明确设置name的字段是null
+	INSERT INTO member (mid,name)
+	VALUES(2,null);
+2:不设置name字段的内容：
+	INSERT INTO member(mid)
+	VALUES(3);
+	
+----------------------------------------------------
+/*
+	唯一约束:
+		1:如果直接设置唯一约束,数据有问题,
+		系统出动态创建出一个错误的对象---这是我们看不懂的
+		2:于是我们要为唯一约束指定一个名字
+		3:null值不受唯一约束的影响
+		
+		
+	
+*/
+
+DROP TABLE member PURGE;
+CREATE TABLE member(
+	mid 	NUMBER ,
+	name	VARCHAR2(200) NOT NULL,
+	email	VARCHAR2(50) UNIQUE
+);
+//向member表中增加正确记录
+INSERT INTO member(mid,name,email)
+VALUES(1,'ozc','403686131');
+--------------------------
+//向member表中增加错误的纪录
+INSERT INTO member(mid,name,email)
+VALUES(2,'zfc','403686131');
+--------------------------------
+//为唯一约束指定一个名字
+DROP TABLE member PURGE;
+CREATE TABLE member(
+	mid 	NUMBER , 
+	name 	VARCHAR2(200) NOT NULL , 
+	email 	VARCHAR2(50),
+	CONSTRAINT uk_email 	UNIQUE(email)
+);
+
+//插入两条包含null的记录
+INSERT INTO member(mid,name,email)
+VALUES(10,'ozc',null);
+
+INSERT INTO member(mid,name,email)
+VALUES(20,'zhongfucheng',null);
+----------------------------
+//查看member表的内容
+SELECT * FROM member;
+----------------------------------------
+/*
+	主键:非空约束+唯一约束
+	1:如果数据有null,提示的信息依然是非空约束的
+	2:如果数据重复,提示信息是唯一约束的,我们没有设置名字,所以看不懂
+	
+*/
+//设置member表中的mid为主键
+DROP TABLE member PURGE;
+CREATE TABLE member(
+	mid 	NUMBER PRIMARY KEY,
+	name 	VARCHAR2(200) NOT NULL,
+	email 	VARCHAR2(50) ,
+	CONSTRAINT uk_email UNIQUE(email)
+);
+
+//将mid设置为null
+INSERT INTO member(mid,name,email)
+VALUES(null,'zfc','123');
+--------------------------------------
+//插入重复的mid
+INSERT INTO member(mid,name,email)
+VALUES(1,'OZC','222');
+
+INSERT INTO member(mid,name,email)
+VALUES(1,'ZFC','333');
+--------------------------
+//指定主键约束的名称
+DROP TABLE member PURGE;
+CREATE TABLE member(
+	mid 	NUMBER ,
+	name	VARCHAR2(200)   NOT NULL,
+	email	VARCHAR2(50),
+	CONSTRAINT pk_mid PRIMARY KEY(mid),
+	CONSTRAINT uk_email UNIQUE(email)
+);
+
+--------------------------------------
+/*
+	复合主键:
+		将个字段的数据同时相同的时候,才会报错
+*/
+//将mid和name两个字段同时设置为主键
+DROP TABLE member PURGE;
+CREATE TABLE member (
+	mid 	NUMBER ,
+	name	VARCHAR2(200) NOT NULL,
+	email	VARCHAR2(50) ,
+	CONSTRAINT pk_mid_name PRIMARY KEY(mid,name),
+	CONSTRAINT uk_email   UNIQUE(email)
+);
+
+--------------------------------
+//插入正确的数据
+INSERT INTO member(mid,name,email)
+VALUES(1,'ZFC','111');
+
+INSERT INTO member(mid,name,email)
+VALUES(1,'ozc','333');
+
+---------------------
+//插入错误的数据 —— mid和name相同
+INSERT INTO member(mid,name,email)
+VALUES(1,'ZFC','444');
+
+----------------------------
+/*
+	检查约束:
+		1:越多的约束,就会影响数据的性能
+		2:可以用程序来校验的数据,尽量就不要用到约束
+		3:如果不设置为检查约束设置名字,系统会自动生成一个名字
+*/
+//在member表中增加age字段（年龄范围是0~200岁）和sex字段（只能是男或女）
+
+DROP TABLE member PURGE;
+CREATE TABLE member(
+	mid 	NUMBER , 
+	name 	VARCHAR2(200) NOT NULL,
+	email 	VARCHAR2(50) ,
+	age 	NUMBER  CHECK(age BETWEEN 0 AND 200) ,
+	sex 	VARCHAR2(10) ,
+	CONSTRAINT pk_mid_name PRIMARY KEY (mid ,name), 
+	CONSTRAINT uk_email UNIQUE(email) , 
+	CONSTRAINT ch_sex CHECK(sex IN('男','女')) 
+);
+
+//插入正确的数据
+INSERT INTO member(mid ,name, email, age , sex)
+VALUES(1,'ZFC','111',20,'男');
+----------------------------------
+//插入条错误的数据
+INSERT INTO member(mid, name, email, age, sex)
+VALUES(2,'OZC','222',9999,'女');
+-----------------------------
+//插入错误的数据，性别设置为“无”
+INSERT INTO member (mid,name,email,age,sex)
+VALUES(3,'ZFC','4444',20,'无');
+
+--------------------------------------------------
+/*
+	主外键:
+		如果没有主外键,数据就有可能出现混乱
+	比如:
+		一个成员可以提出多条建议
+		成员表----建议表
+		没有约束-----建议标可以添加成员表没有的成员的建议,
+		这明显是不合理的,所以,我们需要用到主外键
+	注意:
+		使用主外键的时候,删除父表的信息,就得先删除子表的信息,
+		drop 子表 再drop父表
+*/
+//根据给出的数据模型编写数据口的创建脚本
+DROP TABLE member PURGE;
+DROP TABLE advice PURGE;
+
+CREATE TABLE member(
+	mid 	NUMBER ,
+	name 	VARCHAR2(200)  NOT NULL ,
+	CONSTRAINT pk_mid PRIMARY KEY(mid) 
+);
+
+CREATE TABLE advice (
+	adid 		NUMBER, 
+	content 	CLOB NOT NULL, 
+	mid 		NUMBER   ,
+	CONSTRAINT pk_adid PRIMARY KEY(adid)
+);
+-------------------------------------
+//插入正确的数据
+INSERT INTO member(mid,name)
+VALUES(1,'ZFC');
+
+INSERT INTO member(mid,name)
+VALUES(2,'OZC');
+
+COMMIT;
+
+-------------------------------------
+//查看member的信息
+SELECT * FROM member;
+
+---------------------------------
+//插入正确的数据 —— 向advice表插入五条新记录
+INSERT INTO advice (adid,content,mid)
+VALUES(1,'我是1',1);
+
+INSERT INTO advice (adid,content,mid)
+VALUES(2,'我是2',1);
+
+INSERT INTO advice (adid,content,mid)
+VALUES(3,'我是3',2);
+
+INSERT INTO advice (adid,content,mid)
+VALUES(4,'我是4',2);
+
+INSERT INTO advice (adid,content,mid)
+VALUES(5,'我是5',2);
+
+----------------
+//查询advice表数据
+SELECT * FROM advice;
+-----------------------------------------------
+//查询出每位成员的完整信息以及所提出的意见数量
+SELECT  m.mid,m.name,COUNT(m.mid)
+FROM member m , advice ad
+WHERE m.mid  = ad.mid(+)
+GROUP BY m.mid,m.name;
+
+-----------------------------------------------
+//在意见表（advice）中增加以下错误的信息
+INSERT INTO advice (adid,content,mid)
+VALUES(6,'我是6',99);
+
+-------------------------------
+//查询advice表数据
+SELECT * FROM advice;
+
+----------------------------------
+//修改表结构，指定主-外键约束
+DROP TABLE member PURGE;
+DROP TABLE advice PURGE;
+CREATE TABLE member(
+	mid 		NUMBER ,
+	name		VARCHAR2(200) NOT NULL ,
+	CONSTRAINT pk_mid PRIMARY KEY (mid)
+);
+
+CREATE TABLE advice(
+	adid 		NUMBER, 
+	content 	CLOB   NOT NULL,
+	mid 		NUMBER ,
+	CONSTRAINT pk_adid PRIMARY KEY(adid),
+	CONSTRAINT fk_mid  FOREIGN KEY (mid) REFERENCES member(mid)
+);
+
+---------------------------
+//向advice表中插入错误的数据 —— 此时member表中没有mid=99的数据
+INSERT INTO advice (adid,content,mid)
+VALUES(1,'1',99);
+
+-------------------------------------------------------------------
+//插入正确的数据
+INSERT INTO member(mid,name)
+VALUES( 1,'ZFC');
+
+INSERT INTO member(mid,name)
+VALUES( 2,'OZC');
+
+INSERT INTO advice(adid,content,mid)
+VALUES( 1,'1',1);
+
+INSERT INTO advice(adid,content,mid)
+VALUES( 2,'2',2);
+
+--------------------------------------------
+//删除member表中编号为“1”的数据（mid=1），
+//此时没有删除子表（advice）数据
+/*
+	我们会发现删除不成功,因为父表的记录被子表约束着
+*/
+DELETE FROM member WHERE mid = 1;
+
+----------------------------------------
+//先删除子表（advice）中mid=1的数据，
+//之后再删除父表（member）中mid=1的数据
+
+DELETE FROM advice WHERE mid =1 ;
+DELETE FROM member WHERE mid = 1;
+
+----------------------------------------
+//查看member表中的记录
+SELECT * FROM member;
+
+--------------------------------------
+//修改表创建语法，增加级联删除，同时配置测试数据
+/*
+	我们发现,在主外键设置级联删除,可以直接删除父表的数据
+	子表的数据也一同被删除掉
+*/
+DROP TABLE advice PURGE;
+DROP TABLE member PURGE;
+CREATE TABLE member(
+	mid 	NUMBER , 
+	name 	VARCHAR2(200) NOT NULL,
+	CONSTRAINT pk_mid PRIMARY KEY(mid)
+);
+
+CREATE TABLE advice(
+	adid 		NUMBER ,
+	content 	CLOB      NOT NULL,
+	mid 		NUMBER, 
+	CONSTRAINT pk_adid PRIMARY KEY(adid),
+	CONSTRAINT fk_mid FOREIGN KEY(mid) REFERENCES member(mid) ON DELETE CASCADE
+);
+
+INSERT INTO member(mid,name) VALUES(1,'ZFC');
+INSERT INTO member(mid,name) VALUES(2,'OZC');
+
+INSERT INTO advice (adid, content,mid) VALUES(1,'1',1);
+INSERT INTO advice (adid,content,mid) VALUES(2,'2',2);
+
+-----------------------------------------
+//删除member表中编号为1的成员信息
+DELETE FROM member WHERE mid = 1;
+
+//查看member表中的数据
+SELECT * FROM member;
+//查看advice中的数据
+SELECT * FROM advice;
+
+------------------------------------------------------------
+//修改表的创建语句，增加ON DELETE SET NULL子句
+/*
+	如果一个雇员离开了,我们不可能使用级联删除吧.
+	一个雇员离开了,就把部门的信息全部删除,这样是不合逻辑的.
+	所以,雇员离开了,我们可以把部门的信息设置为null
+*/
+DROP TABLE advice PURGE;
+DROP TABLE member PURGE;
+
+CREATE TABLE member(
+	mid  	NUMBER ,
+	name 	VARCHAR2(200)   NOT NULL,
+	CONSTRAINT pk_mid PRIMARY KEY(mid)
+);
+
+
+CREATE TABLE advice (
+	adid 		NUMBER,
+	content 	CLOB           NOT NULL,
+	mid 		NUMBER ,
+	CONSTRAINT pk_adid PRIMARY KEY(adid) ,
+	CONSTRAINT fk_mid FOREIGN KEY(mid) REFERENCES member(mid) ON DELETE SET NULL
+);
+
+INSERT INTO member (mid ,name)
+VALUES (1,'ZFC');
+INSERT INTO member(mid,name) 
+VALUES (2,'OZC');
+
+INSERT INTO advice(adid,content,mid)
+VALUES(1,'1',1);
+
+INSERT INTO advice(adid,content,mid)
+VALUES(2,'2',2);
+---------------------------------------------
+//删除member表中mid为1的记录
+DELETE FROM member WHERE mid = 1;
+--------------------------------
+//查看数据
+SELECT * FROM member;
+SELECT * FROM advice;
+-----------------------------------------------
+//我们还有一个方法,可以不管子表的关联数据,强制删除
+DROP TABLE member CASCADE CONSTRAINT ;
+
+----------------------------------------------
+/*
+	查看约束的内容
+*/
+//查看全部的约束名称、类型、约束设置对应的表名称
+
+SELECT constraint_name,constraint_type,table_name 
+FROM user_constraints ;
+--------------------------------------
+//查询emp表上的全部约束
+SELECT constraint_name,constraint_type,table_name 
+FROM user_constraints WHERE table_name='EMP' ;
+
+------------------------------------------
+//查询user_cons_columns数据字典
+SELECT * FROM  user_cons_columns;
+-------------------------------------------
+/*
+	修改约束,删除约束
+*/
+
+//假设有这样的一张表
+DROP TABLE member purge ;
+CREATE TABLE member(
+	mid		NUMBER ,
+	name		VARCHAR2(30)  ,
+	age		NUMBER
+) ;
+--------------------------------------------
+
+//为member表的mid字段增加主键约束
+ALTER TABLE member ADD CONSTRAINT pk_mid PRIMARY KEY(mid);
+-----------------------------------------------
+//为member表的age增加检查约束
+ALTER TABLE member ADD CONSTRAINT ch_age CHECK(age BETWEEN 0 AND 200);
+-------------------------------------------------------------------
+//为表中添加完约束之后，通过数据字典user_constraints查看member表中的全部约束。
+//查看member表中的约束
+
+SELECT constraint_name , constraint_type, table_name
+FROM user_constraints WHERE table_name='MEMBER';
+
+----------------------------------------------------------------
+//为name字段设置非空约束
+ALTER TABLE member MODIFY(name VARCHAR2(30) NOT NULL);
+
+-------------------------------------------------------
+/*
+	禁用约束
+*/
+//脚本
+DROP TABLE advice PURGE ;
+DROP TABLE member PURGE ;
+CREATE TABLE member (
+    mid       NUMBER    ,
+    name      VARCHAR2(200)   NOT NULL ,
+    CONSTRAINT pk_mid PRIMARY KEY (mid) 
+) ;
+CREATE TABLE advice (
+    adid      NUMBER ,
+    content   CLOB            NOT NULL ,
+    mid       NUMBER ,
+    CONSTRAINT pk_adid PRIMARY KEY (adid) ,
+    CONSTRAINT fk_mid FOREIGN KEY(mid) REFERENCES member(mid) ON DELETE SET NULL
+) ;
+INSERT INTO member (mid,name) VALUES (1,'李兴华') ; 
+INSERT INTO member (mid,name) VALUES (2,'董鸣楠') ;
+INSERT INTO advice (adid,content,mid) VALUES (1,'应该提倡内部沟通机制，设置总裁邮箱',1) ;
+INSERT INTO advice (adid,content,mid) VALUES (2,'为了使公司内部良性发展，所有的部门领导应该重新应聘上岗',1) ;
+INSERT INTO advice (adid,content,mid) VALUES (3,'要多开展员工培训活动，让员工更加有归属感',1) ;
+INSERT INTO advice (adid,content,mid) VALUES (4,'应该开展多元化业务，更加满足市场需求',2) ;
+INSERT INTO advice (adid,content,mid) VALUES (5,'大力发展技术部门，为本公司设计自己的ERP系统，适应电子化信息发展要求',2) ;
+COMMIT ;
+
+------------------------------------------
+//禁用advice表中的adid主键约束“pk_adid”
+ALTER TABLE advice DISABLE CONSTRAINT pk_adid;
+
+----------------------------------------
+//查询禁用约束之后advice表中的数据
+SELECT * FROM advice;
+
+-----------------------------------
+//禁用member表中的“pk_mid”约束，此字段在advice表中是外键
+/*
+	无法禁用约束条件,存在相关性
+*/
+ALTER TABLE member DISABLE CONSTRAINT pk_mid;
+
+---------------------------------
+//增加两条MID相同的数据
+/*
+	违反唯一约束.
+*/
+INSERT INTO member(mid,name) VALUES(1,'zfc');
+
+
+
+
+
+
+
+
+
+
+
+

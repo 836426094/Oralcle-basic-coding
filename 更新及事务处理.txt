@@ -1,0 +1,168 @@
+//复制emp表 —— 新的表名称为myemp
+CREATE TABLE myemp AS SELECT * FROM emp;
+
+------------------------------------------
+//查看c##scott用户的全部表
+SELECT * FROM tab;
+
+---------------------------------
+//向myemp数据表之中增加一条新的数据
+INSERT INTO myemp(empno,job,hiredate,ename,mgr,sal,comm,deptno)
+	VALUES(8888,'CLERK',SYSDATE,'钟福成',7369,800,100,20);
+/*
+	1:建议我们要把列写全,这样容易阅读,减少麻烦
+*/
+
+---------------------------------------------------------
+//增加一个没有领导、没有部门、没有奖金的新雇员
+INSERT INTO myemp (empno,job,hiredate,ename,mgr,sal,comm,deptno)
+	VALUES(8888,'MANAGER',SYSDATE,'OZC',null,10000,null,null);
+
+---------------------------------------------------------------
+//查询myemp表中是否存在编号为6612和6616的信息
+
+SELECT *
+FROM myemp
+WHERE empno IN(8888,6616);
+
+------------------------------------------
+//通过子查询增加myemp表数据
+INSERT INTO myemp SELECT * FROM emp WHERE deptno = 10;
+
+---------------------------------------------------------------
+//将SMITH（雇员编号为7369）的工资修改为3000元，并且每个月有500元的奖金
+
+UPDATE myemp 
+SET sal = 3000,comm = 500
+WHERE empno = 7369;
+
+--------------------------------------------
+//将工资低于公司平均薪金的雇员的基本工资上涨20%
+/*
+	1:首先计算出公司的平均工资
+*/
+SELECT AVG(sal)
+FROM myemp
+
+UPDATE myemp
+SET sal = sal * 1.2
+WHERE sal <(
+	SELECT AVG(sal)
+	FROM myemp);
+------------------------------------------------------------
+//一次性上涨公司全部雇员的基本工资，每个雇员的基本工资上涨10%
+UPDATE myemp
+SET sal  = sal * 1.1;
+
+-------------------------------------------------------------
+//将雇员7369的职位、基本工资、雇佣日期更新为与7839相同的信息
+/*
+	1:首先要知道7839的信息
+	2:根据7839的信息,作为子查询改变7369的信息
+*/
+
+SELECT job , sal, hiredate
+FROM myemp
+WHERE empno = 7839;
+
+
+UPDATE myemp
+SET (job,sal,hiredate) = (
+	SELECT job , sal, hiredate
+	FROM myemp
+	WHERE empno = 7839)
+WHERE empno = 7369;
+---------------------------------------------------------
+//删除雇员编号是7566的雇员信息
+DELETE FROM myemp
+WHERE empno = 7566;
+
+-----------------------------------------
+//验证7566雇员的信息是否还存在
+
+SELECT *
+FROM myemp
+WHERE empno = 7566;
+----------------------------------------
+//删除30部门内的所有雇员
+DELETE FROM myemp
+WHERE deptno = 30;
+
+---------------------------------------
+//删除雇员编号为7369、7566、7788的雇员信息
+DELETE FROM myemp
+WHERE empno IN(7369,7566,7788);
+
+----------------------------------------
+//删除所有在1987年雇佣的雇员
+
+DELETE FROM myemp
+WHERE TO_CHAR(hiredate,'yyyy') = 1981;
+--------------------------------------
+//删除公司工资最高的雇员
+/*
+	1:计算出最高工资是多少,
+	2:作为子查询,放进WHERE字句中
+*/
+DELETE FROM myemp
+WHERE sal = (
+	SELECT MAX(sal)
+	FROM myemp
+	);
+
+----------------------------------------
+/*
+	1:在第一个sqlplus执行删除操作
+	2:在第一个sqlplus执行查询操作
+	3:查询发现数据已经被删除了.
+	4:在第二个sqlplus查询数据,发现数据还全部都在
+	5:在第一个sqlplus中commit操作,数据提交commit
+	6:无论在第一个还是第二个sqlplus中,数据都已经删除掉了.
+	7:rollback后,数据又变成是原来的样子了.
+	8:设置保存点:SAVEPOINT 名字
+	9:rollback可以回滚指定的保存点中
+	
+*/
+//将事务设置成自动提交
+SET AUTOCOMMIT ON;
+
+----------------------------------
+
+//锁的操作
+SELECT * FROM mineemp
+WHERE deptno = 10 FOR UPDATE;
+/*
+	1:这里会把行的数据锁上,
+	2:在另一个sqlplus中执行同样的数据
+	3:发现数据被锁上了,sqlplus语句呆在那里不动.
+	4:要想第二个sqlplus能够执行,就需要第一个sqlplus回滚或者提交
+
+*/
+SELECT * FROM mineemp 
+WHERE deptno = 10 FOR UPDATE;
+
+/*
+	解锁操作:
+		1:根据两张表查询序列号和SID
+		2:ALTER SYSTEM KILL SESSION 
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

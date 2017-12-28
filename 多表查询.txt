@@ -1,0 +1,219 @@
+//查询emp表中的数据量 —— 14条数据
+SELECT COUNT(*)
+FROM emp;
+
+-------------------------------------
+//查询dept表中的数据量 —— 4条数据
+SELECT COUNT(*)
+FROM dept;
+
+----------------------------------
+//现在查询所有的雇员和部门的全部详细信息
+SELECT *
+FROM dept,emp;
+
+---------------------------------------
+//查询sh.sales表中的数据量
+SELECT COUNT(*)
+FROM sales;
+
+------------------------------------
+//查询sh.costs表中的数据量
+SELECT COUNT(*)
+FROM costs;
+
+-------------------------------
+//将sales和costs两张表关联查询，同时设置消除笛卡尔积的条件
+SELECT COUNT(*) 
+FROM sales s,costs c
+WHERE s.prod_id=c.prod_id ;
+
+--------------------------------------------
+//查询每个雇员的编号、姓名、职位、基本工资、部门名称、部门位置信息
+
+SELECT empno,ename,job,sal,dname,loc
+FROM emp e,dept d
+WHERE e.deptno = d.deptno;
+
+----------------------------------------------------
+//查询出每个雇员的编号、姓名、雇佣日期、基本工资、工资等级
+
+SELECT empno,ename,hiredate,sal,s.grade
+FROM emp e,salgrade s 
+WHERE e.sal BETWEEN s.losal AND s.hisal;
+
+-----------------------------------------------------
+//使用DECODE()进行替换,
+SELECT empno,ename,hiredate,sal,
+	DECODE(s.grade,'1','E','2','D','3','C','4','B','5','A')
+FROM emp e,salgrade s
+WHERE e.sal BETWEEN s.losal AND s.hisal;
+
+--------------------------------------------------------
+//查询出每个雇员的姓名、职位、基本工资、部门名称、工资所在公司的工资等级；
+
+SELECT ename,job,hiredate,dname,s.grade
+FROM emp e,salgrade s,dept d
+WHERE e.deptno = d.deptno 
+	AND e.sal BETWEEN s.losal AND s.hisal;
+	
+------------------------------------------------------------
+//向emp表中添加一条新的纪录
+
+INSERT INTO emp(empno,ename,job,mgr,hiredate,sal,comm,deptno) 
+VALUES (8888,'李兴华','CLERK',7369,SYSDATE,800,100,null);
+
+----------------------------------------------------------
+//现在将emp和dept表联合查询，使用内连接（等值连接）
+/*
+	1:李兴华deptno为null配对不了
+	2:在查询中没有显示
+	3:我们如果想要显式,就需要用到外连接
+*/
+SELECT *
+FROM emp e ,dept d
+WHERE e.deptno = d.deptno(+);
+/*
+	左连接是在等号的右边,主要显示左表的内容
+	右连接是在等号的左边,主要显示右表的内容
+*/
+
+-----------------------------------------------------
+//查询出每个雇员的编号、姓名及其上级领导的编号、姓名
+/*
+	1:雇员的领导,同时也是雇员
+	2:要查询雇员标号,又要查询雇员的领导,这需要两张表
+	3:自反连接
+	4:我们发现只有13条数据,因为有一个老板,是没有领导的.
+	5:我们要使用外连接把数据全部查询出来
+*/
+SELECT e.empno,e.ename,m.mgr,m.ename
+FROM emp e, emp m
+WHERE e.empno = m.mgr(+);
+
+-----------------------------------------------
+//查询出在1981年雇佣的全部雇员的编号、姓名、雇佣日期（按照年-月-日显示）、工作、领导姓名、雇员月工资、
+雇员年工资（基本工资+奖金），雇员工资等级、部门编号、部门名称、部门位置，并且要求这些雇员的月基本工资在1500~3500之间，
+将最后的结果按照年工资的降序排列，如果年工资相等，则按照工作进行排序
+/*
+	1:确定表:emp e emp m dept salgrade s
+*/
+SELECT e.empno,e.ename,TO_CHAR(e.hiredate,'yyyy-mm-dd')hiredate,
+	e.job,m.ename,e.sal,(e.sal+NVL(e.comm,0))*12,s.grade,d.deptno,d.dname,d.loc
+FROM emp e,emp m, dept d,salgrade s
+WHERE 
+	e.deptno = d.deptno
+	AND e.mgr = m.empno
+	AND e.sal BETWEEN s.losal AND s.hisal
+	AND e.sal BETWEEN 1500 AND 3500
+	AND TO_CHAR(e.hiredate,'yyyy') = 1981
+ORDER BY sal DESC;
+
+-------------------------------------------------------------------------
+//使用交叉连接（CROSS JOIN），产生笛卡尔积
+
+SELECT * 
+FROM emp
+CROSS JOIN dept;	
+---------------------------------------------------------------
+//使用自然连接（NATION JOIN）
+SELECT *
+FROM emp
+CROSS NATURAL JOIN dept;
+
+------------------------------------------------------------
+//USING子句，直接使用JOIN进行连接，同时指定关联的列
+SELECT *
+FROM emp
+JOIN dept USING(deptno);
+
+------------------------------------------------
+//ON子句，直接编写条件
+SELECT *
+FROM emp
+JOIN salgrade ON(emp.sal BETWEEN salgrade.losal AND salgrade.hisal);
+/*
+	USING 是设置连接字段,ON是设置连接条件.
+*/
+----------------------------------------------------
+//使用SQL:1999语法实现左外连接
+SELECT *
+FROM emp e LEFT OUTER JOIN dept d
+ON(e.deptno = d.deptno) ;
+
+-------------------------------------------
+//使用SQL:1999语法实现右外连接
+SELECT *
+FROM emp e RIGHT OUTER JOIN dept d
+ON(e.deptno = d.deptno);
+
+---------------------------------------
+//使用UNION将两个查询结果连接
+SELECT * FROM dept
+	UNION
+SELECT * FROM dept WHERE deptno = 10;
+/*
+	相同的数据不会重复出现,UNION
+	相同是的数据会重复出现,UNION ALL
+*/
+
+------------=------------------------------
+//使用UNION ALL将两个查询结果连接
+
+SELECT * FROM dept 
+	UNION ALL
+SELECT * FROM dept WHERE deptno = 10;
+
+-----------------------------------------
+//使用UNION来代替OR，查询所有办事员与销售人员的信息
+
+SELECT * FROM emp WHERE job = 'CRERK'
+	UNION
+SELECT * FROM emp WHERE job = 'SALESMAN';
+
+-----------------------------------------
+//使用MINUS执行差集操作
+SELECT * FROM dept
+	MINUS
+SELECT * FROM dept WHERE deptno = 10;
+/*
+	大的集合减去小的集合
+*/
+----------------------------------------
+//使用INTERSECT执行交集操作
+SELECT * FROM dept 
+	INTERSECT 
+SELECT * FROM dept WHERE deptno = 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

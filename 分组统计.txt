@@ -1,0 +1,139 @@
+/*
+	1:没有GROUP BY 字句,在SELECT字句中只能出现统计函数,不能出现其他字段
+	2:在统计查询中,SELECT 字句只能出现分组字段和统计函数,不能出现其他字段
+	3:统计函数允许嵌套,但是不能出现其他字段.
+*/
+
+
+//查找出公司每个月支出的月工资的总和
+SELECT SUM(sal)
+FROM emp;
+
+-------------------------------------
+//查询出公司的最高工资、最低工资、平均工资
+SELECT MAX(sal),MIN(sal),TRUNC(AVG(sal))
+FROM emp;
+
+-----------------------------------
+//统计出公司最早雇佣和最晚雇佣的雇佣日期
+SELECT MIN(hiredate),MAX(hiredate)
+FROM emp;
+
+--------------------------------
+//统计公司中间的工资值
+SELECT MEDIAN(sal) 
+FROM emp;
+
+--------------------------------
+//统计出公司的雇员人数
+SELECT COUNT(empno)
+FROM emp;
+
+--------------------------------------
+//验证COUNT(*)、COUNT(字段)、COUNT(DISTINCT 字段)的使用区别
+SELECT COUNT(*) , COUNT(ename) , COUNT(comm) , COUNT(DISTINCT job)
+FROM emp ;
+/*
+	null值不计算在里面的
+*/
+----------------------------------------------
+//统计出每个部门的人数
+SELECT deptno,COUNT(*)
+FROM emp
+GROUP BY deptno;
+
+------------------------------------------------
+//统计出每种职位的最低和最高工资
+SELECT job,MIN(sal),MAX(sal)
+FROM emp
+GROUP BY job;
+
+----------------------------------------------
+//求出每个部门平均工资最高的工资
+SELECT AVG(MAX(sal))
+FROM emp
+GROUP BY deptno;
+
+---------------------------------------------
+//统计函数嵌套分析
+SELECT deptno,SUM(sal) 
+FROM emp 
+GROUP BY deptno ;
+
+----------------------------------------
+//查询每个部门的名称、部门人数、部门平均工资、平均服务年限
+SELECT d.dname,COUNT(e.deptno),TRUNC(AVG(sal)),TRUNC(AVG((MONTHS_BETWEEN(SYSDATE,e.hiredate)/12)))
+FROM emp e, dept d
+WHERE e.deptno(+) = d.deptno
+GROUP BY d.dname;
+
+------------------------------------------------
+//查询出公司各个工资等级雇员的数量、平均工资。
+SELECT s.grade,COUNT(empno),AVG(sal)
+FROM emp e,salgrade s
+WHERE e.sal BETWEEN s.losal AND s.hisal
+GROUP BY s.grade;
+
+------------------------------------------------
+//统计出领取佣金与不领取佣金的雇员的平均工资、平均雇佣年限、雇员人数。
+SELECT '领取佣金的',AVG(sal),TRUNC(AVG(MONTHS_BETWEEN(SYSDATE,hiredate)/12)),COUNT(empno)
+FROM emp
+WHERE comm IS NOT NULL 
+	UNION
+SELECT '不领取佣金的',AVG(sal),TRUNC(AVG(MONTHS_BETWEEN(SYSDATE,hiredate)/12)),COUNT(empno)
+FROM emp
+WHERE comm is NULL;
+
+------------------------------------------------
+//现在要求查询出每个部门的详细信息。
+
+SELECT d.dname,d.deptno,d.loc,MIN(e.sal),MAX(e.sal),AVG(e.sal)
+FROM emp e,dept d
+WHERE e.deptno(+) = d.deptno
+GROUP BY d.dname,d.deptno,d.loc;
+
+-------------------------------------------------------
+//查询出所有平均工资大于2000的职位信息、平均工资、雇员人数
+/*
+	1:平均工资大于2000,所以我们先要算出平均工资
+	2:不能直接WHERE sal>2000
+*/
+SELECT job,AVG(sal),COUNT(empno)
+FROM emp 
+GROUP BY job
+HAVING AVG(sal)>2000;
+
+------------------------------------------------------
+//列出至少有一个员工的所有部门编号、名称，并统计出这些部门的平均工资、最低工资、最高工资。
+/*
+	1:先对部门进行分组
+	2:判断是否存在有员工
+*/
+SELECT d.deptno,d.dname,AVG(e.sal),MIN(e.sal),MAX(e.sal)
+FROM emp e,dept d
+WHERE d.deptno(+) = e.deptno
+GROUP BY d.deptno,d.dname
+HAVING d.deptno IS NOT NULL;
+
+----------------------------------------------------------------------------------
+//显示非销售人员工作名称以及从事同一工作雇员的月工资的总和，
+并且要满足从事同一工作的雇员的月工资合计大于$5000，输出结果按月工资的合计升序排列
+SELECT job,SUM(sal)
+FROM emp
+WHERE job ! = 'CLREK'
+GROUP BY job
+HAVING SUM(sal) > 5000
+ORDER BY SUM(sal) ASC;
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,91 @@
+//创建自己的数据库
+create datebase mydata;
+-------------------------------
+//使用自己的数据库
+use mydata;
+-----------------------------
+//创建oracle的几张表
+create table dept(
+	deptno 	int   primary key,
+	dname	varchar(14),
+	dloc	varchar(13)
+);
+--------------------------
+create table emp(
+	empno	int primary key,
+	ename	varchar(10),
+	job 	varchar(10),
+	mgr		int ,
+	hiredate 	datetime,
+	sal 	double,
+	comm	double,
+	deptno	int,
+	foreign key (deptno) references dept(deptno)
+);
+//查看有多少个数据库
+show databases;
+----------------------
+//查看表
+show tables;
+------------
+//查看表结构
+desc dept;
+---------------
+//向表中插入几条数据
+insert into dept values(10,'a','a');
+insert into dept values(20,'b','b');
+insert into dept values(30,'c','c');
+insert into dept values(40,'d','d');
+insert into dept values(50,'e','e');
+--------------------
+//提交
+commit;
+--------------------------------------
+//不同的数据库的数据类型是不一样的.
+//分页
+//自动递增
+-------------------------------
+//取dept表的第4条和第5条记录,并且按deptno倒序
+/*
+	limit 3,2是什么意思?
+	从第三条数据,往后数两条
+		
+*/
+select * from dept order by deptno desc limit 3,2; 
+-------------------------------------------------
+//自动递增
+//主键自增，在插入数据时默认不处理或直接赋null值,数据库会自动处理
+create table article(
+	id 		int primary key auto_increment,
+	title 	varchar(255)
+);
+
+insert into article values(null,'a');
+
+select * from article;
+
+insert into article values(null,'b');
+//指定插入title字段, 
+insert into article(title) values('c');
+
+select * from article;
+-----------------------------------------------
+//取出当前时间
+select now();
+-------------------------------------
+//把日期转换成字符串
+ select date_format(now(),'%Y-%m-%d %H:%i:%s');
+ --------------------------------------------
+//插入时间记录---只要按照格式就可以了,他会自动转换的.
+//首先看一下表的结构
+desc emp;
+insert into emp values(99,'zfc','manager',7369,'1981-12-23 12:23:23',99,99,10);
+---------------------------------------------------------
+
+
+ 
+
+
+ 
+
+
